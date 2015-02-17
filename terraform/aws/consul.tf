@@ -1,9 +1,12 @@
 resource "aws_instance" "server" {
     ami = "${lookup(var.ami, var.region)}"
-    instance_type = "m1.small"
+    instance_type = "${var.instance_type}"
     key_name = "${var.key_name}"
     count = "${var.servers}"
     security_groups = ["${aws_security_group.consul.name}"]
+    tags {
+        Name = "${var.name}"
+    }
 
     connection {
         user = "ubuntu"
@@ -37,7 +40,7 @@ resource "aws_instance" "server" {
 }
 
 resource "aws_security_group" "consul" {
-    name = "consul"
+    name = "${var.security_group}"
     description = "Consul internal traffic + maintenance."
 
     // These are for internal traffic
@@ -60,6 +63,6 @@ resource "aws_security_group" "consul" {
         from_port = 22
         to_port = 22
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.ssh_entry_point}"]
     }
 }
